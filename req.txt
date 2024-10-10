@@ -1,0 +1,15 @@
+torch
+transformers
+requests
+Flask 
+python-docx 
+PyMuPDF 
+langchain-community
+# these two commend in the below are most imp run this commands after install requirements 
+
+#curl -fsSL https://ollama.com/install.sh | sh
+#ollama pull llama3
+
+# to run this code need gpu t4 support 
+#suggested u deploy the this code in testing servers 
+#check the ui code throught API

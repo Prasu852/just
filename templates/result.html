@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Improvement Suggestions</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Resume Improvement Suggestions</h2>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Suggested Changes:</h5>
+                <p class="card-text">{{ suggestions }}</p>
+            </div>
+        </div>
+        <a href="{{ url_for('upload_form') }}" class="btn btn-secondary mt-3">Upload Another Resume</a>
+    </div>
+</body>
+</html>

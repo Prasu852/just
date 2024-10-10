@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume and Job Description Upload</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Upload Resume and Job Description</h2>
+        <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="resume">Upload Resume (PDF or DOCX):</label>
+                <input type="file" class="form-control-file" name="resume" id="resume" required>
+            </div>
+            <div class="form-group">
+                <label for="jd">Enter Job Description:</label>
+                <textarea class="form-control" name="jd" id="jd" rows="6" placeholder="Paste the job description here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
