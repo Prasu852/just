@@ -1,16 +1,18 @@
 import os
 import fitz  # PyMuPDF
 import docx
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, jsonify
 from langchain_community.llms import ollama
 from langchain.prompts import PromptTemplate
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 
 # Initialize the language model
 llm = ollama.Ollama(model="llama3", temperature=0.7)
 
 # Flask app setup
 app = Flask(__name__)
+CORS(app)  # Enable CORS to allow requests from React
 app.config['UPLOAD_FOLDER'] = './uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'docx'}
 
@@ -74,40 +76,40 @@ def process_resume_and_jd(resume_path, jd_text):
     response = llm(prompt_text)
     return response.replace("**", "")
 
-# Route for the homepage
-@app.route('/')
-def upload_form():
-    return render_template('upload.html')
-
 # Route for handling file upload and processing
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST', 'GET'])
 def upload_file():
-    if 'resume' not in request.files or 'jd' not in request.form:
-        return 'No file or job description uploaded', 400
+    if request.method == "POST":
+        if 'resume' not in request.files or 'jd' not in request.form:
+            return jsonify({'error': 'No file or job description uploaded'}), 400
 
-    resume_file = request.files['resume']
-    jd_text = request.form['jd']
+        resume_file = request.files['resume']
+        jd_text = request.form['jd']
 
-    if resume_file and allowed_file(resume_file.filename):
-        filename = secure_filename(resume_file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        resume_file.save(file_path)
-        print(f"Resume file saved at: {file_path}")
+        if resume_file and allowed_file(resume_file.filename):
+            filename = secure_filename(resume_file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            resume_file.save(file_path)
+            print(f"Resume file saved at: {file_path}")
 
-        # Process the resume and job description
-        try:
-            suggestions = process_resume_and_jd(file_path, jd_text)
-            print(f"Suggestions generated: {suggestions}")
-        except Exception as e:
-            print(f"Error processing files: {e}")
-            return f"Error processing files: {e}", 500
+            # Process the resume and job description
+            try:
+                suggestions = process_resume_and_jd(file_path, jd_text)
+                print(f"Suggestions generated: {suggestions}")
+                return jsonify({'suggestions': suggestions})
+            except Exception as e:
+                print(f"Error processing files: {e}")
+                return jsonify({'error': f"Error processing files: {e}"}), 500
         
-        return render_template('result.html', suggestions=suggestions)
-    
-    return 'Invalid file format. Please upload PDF or DOCX.', 400
+        return jsonify({'error': 'Invalid file format. Please upload PDF or DOCX.'}), 400
+
+    elif request.method == 'GET':
+        return jsonify({'message': 'success'}), 200
 
 # Main function to run the app
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    app.run(host="0.0.0.0",port=8080)
+    app.run(host="0.0.0.0", port=8080)
+
+
