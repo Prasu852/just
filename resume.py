@@ -1,5 +1,5 @@
 import os
-import fitz  # PyMuPDF
+import PyPDF2  # Import PyPDF2 for PDF text extraction
 import docx
 from flask import Flask, request, jsonify
 from langchain_community.llms import ollama
@@ -34,17 +34,19 @@ Please provide suggestions to modify the resume based on the job description. In
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-# Function to extract text from PDF
+# Function to extract text from PDF using PyPDF2
 def extract_text_from_pdf(pdf_path):
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"File not found: {pdf_path}")
     
     print(f"Opening PDF file: {pdf_path}")
     
-    doc = fitz.open(pdf_path)
     text = ""
-    for page in doc:
-        text += page.get_text()
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page_num in range(len(reader.pages)):
+            text += reader.pages[page_num].extract_text()
+    
     print("PDF text extraction completed.")
     return text
 
@@ -61,13 +63,21 @@ def extract_text_from_docx(docx_path):
     return text
 
 # Process the resume and JD based on file types
-def process_resume_and_jd(resume_path, jd_text):
+def process_resume_and_jd(resume_path, jd_path=None, jd_text=None):
     # Extract resume text
     ext = resume_path.rsplit('.', 1)[1].lower()
     if ext == 'pdf':
         resume_text = extract_text_from_pdf(resume_path)
     elif ext == 'docx':
         resume_text = extract_text_from_docx(resume_path)
+
+    # Extract JD text
+    if jd_path:
+        jd_ext = jd_path.rsplit('.', 1)[1].lower()
+        if jd_ext == 'pdf':
+            jd_text = extract_text_from_pdf(jd_path)
+        elif jd_ext == 'docx':
+            jd_text = extract_text_from_docx(jd_path)
     
     # Create prompt text using the template
     prompt_text = resume_prompt_template.format(resume_text=resume_text, jd_text=jd_text)
@@ -80,26 +90,50 @@ def process_resume_and_jd(resume_path, jd_text):
 @app.route('/upload', methods=['POST', 'GET'])
 def upload_file():
     if request.method == "POST":
-        if 'resume' not in request.files or 'jd' not in request.form:
-            return jsonify({'error': 'No file or job description uploaded'}), 400
-
+        if 'resume' not in request.files:
+            return jsonify({'error': 'No resume file uploaded'}), 400
+        
         resume_file = request.files['resume']
-        jd_text = request.form['jd']
-
+        jd_text = request.form.get('jd')  # JD text can be pasted as input
+        
+        jd_file = request.files.get('jd_file')  # JD file can also be uploaded
+        
         if resume_file and allowed_file(resume_file.filename):
             filename = secure_filename(resume_file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             resume_file.save(file_path)
             print(f"Resume file saved at: {file_path}")
+            
+            # Check if JD is uploaded as file
+            if jd_file and allowed_file(jd_file.filename):
+                jd_filename = secure_filename(jd_file.filename)
+                jd_file_path = os.path.join(app.config['UPLOAD_FOLDER'], jd_filename)
+                jd_file.save(jd_file_path)
+                print(f"JD file saved at: {jd_file_path}")
+                
+                # Process the resume and JD (JD as file)
+                try:
+                    suggestions = process_resume_and_jd(file_path, jd_path=jd_file_path)
+                    print(f"Suggestions generated: {suggestions}")
+                    return jsonify({'suggestions': suggestions})
+                except Exception as e:
+                    print(f"Error processing files: {e}")
+                    return jsonify({'error': f"Error processing files: {e}"}), 500
 
-            # Process the resume and job description
-            try:
-                suggestions = process_resume_and_jd(file_path, jd_text)
-                print(f"Suggestions generated: {suggestions}")
-                return jsonify({'suggestions': suggestions})
-            except Exception as e:
-                print(f"Error processing files: {e}")
-                return jsonify({'error': f"Error processing files: {e}"}), 500
+            # Check if JD text is provided
+            elif jd_text:
+                print(f"JD text received.")
+                
+                # Process the resume and JD (JD as text)
+                try:
+                    suggestions = process_resume_and_jd(file_path, jd_text=jd_text)
+                    print(f"Suggestions generated: {suggestions}")
+                    return jsonify({'suggestions': suggestions})
+                except Exception as e:
+                    print(f"Error processing files: {e}")
+                    return jsonify({'error': f"Error processing files: {e}"}), 500
+            
+            return jsonify({'error': 'No job description provided. Upload a file or paste the text.'}), 400
         
         return jsonify({'error': 'Invalid file format. Please upload PDF or DOCX.'}), 400
 
@@ -111,5 +145,3 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run(host="0.0.0.0", port=8080)
-
-
