@@ -84,7 +84,15 @@ def process_resume_and_jd(resume_path, jd_path=None, jd_text=None):
     
     # Use the language model to get the response
     response = llm(prompt_text)
-    return response.replace("**", "")
+    response=response.replace("**", "")
+    suggestions_array = response.split('\n')  # Splitting based on new lines
+    
+    # Remove empty lines
+    suggestions_array = [suggestion.strip() for suggestion in suggestions_array if suggestion.strip()]
+    
+    return suggestions_array
+    
+    
 
 # Route for handling file upload and processing
 @app.route('/upload', methods=['POST', 'GET'])
