@@ -31,11 +31,6 @@ resume_prompt_template = PromptTemplate(
  provide extact  modify  sentence the based on the job description, without  mentoined the  educaion background  .
  Include summary adding required skills, writing important notes,priovde. 
  provide the 4 to  5 variations   sentence for each sentence in each section.
- *example:Variation 1: [First sentence].
-- Variation 2: [Second sentence].
-- Variation 3: [Third sentence].
-- Variation 4: [Fourth sentence].
-- Variation 5: [Fifth sentence].
  separatly  in each section and making other relevant changes to improve the resume's alignment with the JD.all the sentence should be segrigate in difference."""
 
     
