@@ -31,7 +31,7 @@ resume_prompt_template = PromptTemplate(
  provide extact  modify  sentence the based on the job description, without  mentoined the  educaion background  .
  Include summary adding required skills, writing important notes,priovde. 
  provide the 4 to  5 variations   sentence for each sentence in each section.
- *example:Variation 1: [First sentence aligned with the job description].
+ *example:Variation 1: [First sentence].
 - Variation 2: [Second sentence].
 - Variation 3: [Third sentence].
 - Variation 4: [Fourth sentence].
@@ -96,12 +96,8 @@ def process_resume_and_jd(resume_path, jd_path=None, jd_text=None):
     # Use the language model to get the response
     response = llm(prompt_text)
     response=response.replace("**", "")
-    suggestions_array = response.split('\n')  # Splitting based on new lines
     
-    # Remove empty lines
-    suggestions_array = [suggestion.strip() for suggestion in suggestions_array if suggestion.strip()]
-    
-    return suggestions_array
+    return response
     
     
 
