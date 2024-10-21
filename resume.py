@@ -30,7 +30,7 @@ resume_prompt_template = PromptTemplate(
  Job Description: {jd_text}
  provide extact  modify  sentence the based on the job description, without  mentoined the  educaion background  .
  Include summary adding required skills, writing important notes,priovde. 
- provide the 4 to  5 variations   sentence for each sentence in each section.
+ provide the variations  for each sentence in each section.
  separatly  in each section and making other relevant changes to improve the resume's alignment with the JD.all the sentence should be segrigate in difference."""
 
     
@@ -42,20 +42,21 @@ def allowed_file(filename):
 
 # Function to extract text from PDF using PyPDF2
 def extract_text_from_pdf(pdf_path):
-    if not os.path.exists(pdf_path):
-        raise FileNotFoundError(f"File not found: {pdf_path}")
-    
-    print(f"Opening PDF file: {pdf_path}")
-    
-    text = ""
-    with open(pdf_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
-        for page_num in range(len(reader.pages)):
-            text += reader.pages[page_num].extract_text()
-    
-    print("PDF text extraction completed.")
-    return text
-
+    try:
+        # Open the PDF file in binary read mode
+        with open(pdf_path, 'rb') as file:
+            # Create a PDF reader object
+            reader = PyPDF2.PdfReader(file)
+            text = ""
+            
+            # Iterate through all the pages and extract text
+            for page_num in range(len(reader.pages)):
+                page = reader.pages[page_num]
+                text += page.extract_text()  # Extract text from the current page
+            
+            return text.strip()
+    except Exception as e:
+        return f"Error occurred: {str(e)}"
 # Function to extract text from DOCX
 def extract_text_from_docx(docx_path):
     if not os.path.exists(docx_path):
