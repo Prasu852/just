@@ -18,16 +18,27 @@ app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'docx'}
 
 # Initialize the prompt template
 DEFAULT_SYSTEM_PROMPT = """\
-As an expert in resume review and analysis, I will analyze the provided resume and job description (JD) to suggest key improvements. This includes adding important skills, highlighting critical points, and making relevant changes to better align the resume with the JD. I ensure my suggestions are accurate, professional, and reflect proficient vocabulary.
-"""
+request: I am seeking a comprehensive analysis and optimization of my CV (x) in alignment with a specific job description (y). Please provide detailed recommendations for enhancing the relevance of my CV to the targeted job opportunity. Additionally, I request the creation of 9-10 concise, impactful sentences that will strengthen my CV and increase my chances of securing the position.
 
+Objective: To optimize my CV to effectively showcase my qualifications and experiences in a manner that aligns with the requirements of the job description (y), thereby increasing my likelihood of securing the position.
+
+Please note: I have attached both my CV (x) and the job description (y) for your reference.
+"""
 resume_prompt_template = PromptTemplate(
     input_variables=["resume_text", "jd_text"],
     template="""Resume Text: {resume_text}
+ Job Description: {jd_text}
+ provide extact  modify  sentence the based on the job description, without  mentoined the  educaion background  .
+ Include summary adding required skills, writing important notes,priovde. 
+ provide the 4 to  5 variations   sentence for each sentence in each section.
+ *example:Variation 1: [First sentence aligned with the job description].
+- Variation 2: [Second sentence].
+- Variation 3: [Third sentence].
+- Variation 4: [Fourth sentence].
+- Variation 5: [Fifth sentence].
+ separatly  in each section and making other relevant changes to improve the resume's alignment with the JD.all the sentence should be segrigate in difference."""
 
-Job Description: {jd_text}
-
-Please provide suggestions to modify the resume based on the job description. Include adding required skills, writing important notes, and making other relevant changes to improve the resume's alignment with the JD."""
+    
 )
 
 # Function to check allowed file types
